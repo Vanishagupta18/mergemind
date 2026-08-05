@@ -1,278 +1,65 @@
-import requests
-import json
-import os
+import requests, json, os
 from dotenv import load_dotenv
 
 load_dotenv()
+TOKEN = os.getenv('GITHUB_TOKEN')
 
-TOKEN = os.getenv("GITHUB_TOKEN")
+# Errors worth retrying — network hiccups and GitHub's own transient failures
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+
+
+class GitHubTransientError(Exception):
+    """Raised for retryable GitHub API failures (rate limits, 5xx, timeouts)."""
+    pass
 
 
 def fetch_diff(repo: str, pr_number: int) -> str:
-    """
-    Fetch the unified diff of a Pull Request.
-    """
-    url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
+    url = f'https://api.github.com/repos/{repo}/pulls/{pr_number}'
+    headers = {'Authorization': f'Bearer {TOKEN}', 'Accept': 'application/vnd.github.v3.diff'}
+    try:
+        response = requests.get(url, headers=headers, timeout=15)
+    except requests.exceptions.Timeout:
+        raise GitHubTransientError(f"Timeout fetching diff for PR #{pr_number}")
+    except requests.exceptions.ConnectionError as e:
+        raise GitHubTransientError(f"Connection error fetching diff: {e}")
 
-    headers = {
-        "Authorization": f"Bearer {TOKEN}",
-        "Accept": "application/vnd.github.v3.diff"
-    }
+    if response.status_code in RETRYABLE_STATUS_CODES:
+        raise GitHubTransientError(f"GitHub returned {response.status_code} fetching diff")
+    response.raise_for_status()  # non-retryable errors (e.g. 404, 401) fail loudly, not silently
 
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-
-    return response.text
+    return response.text[:4000]
 
 
-def post_github_comment(repo: str, pr_number: int, review_json: str):
-    """
-    Format merged AI review and post it as a GitHub PR comment.
-    """
-
+def post_github_comment(repo: str, pr_number: int, review_json: str) -> str:
+    """Posts the review comment. Returns the GitHub comment ID on success."""
     review = json.loads(review_json)
+    bugs_text = '\n'.join([f'- {b}' for b in review.get('critical_bugs', [])]) or 'No critical bugs found.'
+    suggestions_text = '\n'.join([f'- {s}' for s in review.get('suggested_fixes', [])]) or 'None.'
 
-    comment = []
+    comment = f"""## MergeMind Review
+**Overall Score: {review.get('overall_score', 'N/A')}/10**
 
-    comment.append("# 🤖 CodeReview AI\n")
+### Critical Bugs
+{bugs_text}
 
-    comment.append(
-        f"**Overall Score:** {review.get('overall_score', 'N/A')}/10"
-    )
+### Suggested Fixes
+{suggestions_text}
 
-    comment.append(
-        f"**Confidence:** {review.get('confidence_overall', 'Unknown')}\n"
-    )
+---
+*Reviewed automatically by MergeMind (GPT-4o-mini)*"""
 
-    # -----------------------
-    # Files Reviewed
-    # -----------------------
+    url = f'https://api.github.com/repos/{repo}/issues/{pr_number}/comments'
+    headers = {'Authorization': f'Bearer {TOKEN}', 'Accept': 'application/vnd.github.v3+json'}
 
-    files = review.get("files_reviewed", [])
+    try:
+        response = requests.post(url, json={'body': comment}, headers=headers, timeout=15)
+    except requests.exceptions.Timeout:
+        raise GitHubTransientError(f"Timeout posting comment for PR #{pr_number}")
+    except requests.exceptions.ConnectionError as e:
+        raise GitHubTransientError(f"Connection error posting comment: {e}")
 
-    if files:
-        comment.append("## 📂 Files Reviewed")
-
-        for file in files:
-            comment.append(f"- `{file}`")
-
-        comment.append("")
-
-    # -----------------------
-    # Critical Bugs
-    # -----------------------
-
-    critical = review.get("critical_bugs", [])
-
-    comment.append("## 🚨 Critical Bugs")
-
-    if critical:
-
-        for bug in critical:
-
-            comment.append(
-                f"### 📄 {bug.get('file', 'Unknown File')}"
-            )
-
-            comment.append(
-                f"**Issue:** {bug.get('issue')}"
-            )
-
-            comment.append(
-                f"**Reason:** {bug.get('reasoning')}"
-            )
-
-            comment.append(
-                f"**Confidence:** {bug.get('confidence')}"
-            )
-
-            if bug.get("line") is not None:
-                comment.append(
-                    f"**Line:** {bug.get('line')}"
-                )
-
-            comment.append("")
-
-    else:
-        comment.append("No critical bugs found.\n")
-
-    # -----------------------
-    # Logic Errors
-    # -----------------------
-
-    logic = review.get("logic_errors", [])
-
-    comment.append("## ⚠ Logic Errors")
-
-    if logic:
-
-        for bug in logic:
-
-            comment.append(
-                f"### 📄 {bug.get('file', 'Unknown File')}"
-            )
-
-            comment.append(
-                f"**Issue:** {bug.get('issue')}"
-            )
-
-            comment.append(
-                f"**Reason:** {bug.get('reasoning')}"
-            )
-
-            comment.append(
-                f"**Confidence:** {bug.get('confidence')}"
-            )
-
-            comment.append("")
-
-    else:
-        comment.append("No logic errors detected.\n")
-
-    # -----------------------
-    # Security
-    # -----------------------
-
-    security = review.get("security_issues", [])
-
-    comment.append("## 🔒 Security Issues")
-
-    if security:
-
-        for issue in security:
-
-            comment.append(
-                f"### 📄 {issue.get('file', 'Unknown File')}"
-            )
-
-            comment.append(
-                f"**Issue:** {issue.get('issue')}"
-            )
-
-            comment.append(
-                f"**Reason:** {issue.get('reasoning')}"
-            )
-
-            comment.append("")
-
-    else:
-        comment.append("No security issues detected.\n")
-
-    # -----------------------
-    # Performance
-    # -----------------------
-
-    performance = review.get("performance_issues", [])
-
-    comment.append("## ⚡ Performance")
-
-    if performance:
-
-        for issue in performance:
-
-            comment.append(
-                f"### 📄 {issue.get('file', 'Unknown File')}"
-            )
-
-            comment.append(
-                f"**Issue:** {issue.get('issue')}"
-            )
-
-            comment.append(
-                f"**Reason:** {issue.get('reasoning')}"
-            )
-
-            comment.append("")
-
-    else:
-        comment.append("No performance issues detected.\n")
-
-    # -----------------------
-    # Maintainability
-    # -----------------------
-
-    maintainability = review.get("maintainability_notes", [])
-
-    comment.append("## 🛠 Maintainability")
-
-    if maintainability:
-
-        for note in maintainability:
-
-            comment.append(
-                f"### 📄 {note.get('file', 'Unknown File')}"
-            )
-
-            comment.append(
-                f"- {note.get('reasoning')}"
-            )
-
-            comment.append("")
-
-    else:
-        comment.append("No maintainability concerns.\n")
-
-    # -----------------------
-    # Suggested Fixes
-    # -----------------------
-
-    fixes = review.get("suggested_fixes", [])
-
-    comment.append("## 💡 Suggested Fixes")
-
-    if fixes:
-
-        for fix in fixes:
-
-            comment.append(
-                f"**Issue:** {fix.get('issue')}"
-            )
-
-            comment.append(
-                f"**Suggested Fix:** {fix.get('fix')}"
-            )
-
-            comment.append("")
-
-    else:
-        comment.append("No suggested fixes.\n")
-
-    # -----------------------
-    # Positive Observations
-    # -----------------------
-
-    positives = review.get("positive_observations", [])
-
-    comment.append("## ✅ Positive Observations")
-
-    if positives:
-
-        for p in positives:
-            comment.append(f"- {p}")
-
-        comment.append("")
-
-    else:
-        comment.append("No positive observations.\n")
-
-    comment.append("---")
-    comment.append("*Reviewed automatically by CodeReview AI (GPT-4o-mini)*")
-
-    body = "\n".join(comment)
-
-    url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
-
-    headers = {
-        "Authorization": f"Bearer {TOKEN}",
-        "Accept": "application/vnd.github+json"
-    }
-
-    response = requests.post(
-        url,
-        headers=headers,
-        json={"body": body}
-    )
-
+    if response.status_code in RETRYABLE_STATUS_CODES:
+        raise GitHubTransientError(f"GitHub returned {response.status_code} posting comment")
     response.raise_for_status()
 
-    print("GitHub comment posted successfully.")
+    return str(response.json().get("id", ""))
