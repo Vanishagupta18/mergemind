@@ -11,12 +11,18 @@ interface Review {
   pr_number: number
   pr_title: string
   filename: string
-  quality_score: number
+  quality_score: number | null   // was: number
   status: string
   created_at: string
 }
-
-function ScoreChip({ score }: { score: number }) {
+function ScoreChip({ score }: { score: number | null }) {
+  if (score == null) {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ring-1 bg-slate-500/10 ring-slate-500/20 text-slate-500">
+        —
+      </span>
+    )
+  }
   const cfg =
     score >= 7 ? { text: "text-emerald-400", bg: "bg-emerald-400/10 ring-emerald-400/20" } :
     score >= 4 ? { text: "text-amber-400",   bg: "bg-amber-400/10 ring-amber-400/20" } :

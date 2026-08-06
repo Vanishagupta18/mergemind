@@ -52,6 +52,11 @@ def process_pr(self, repo: str, pr_number: int, pr_title: str):
         for f in files:
             truncated_diff = f["diff_text"][:MAX_DIFF_CHARS_PER_FILE]
             diff_hash = hash_diff(truncated_diff)
+ 
+            print(f"--- DEBUG: diff sent for {f['filename']} ---")
+            print(repr(truncated_diff))
+            print("--- END DEBUG ---")
+
             all_diff_hashes.append(diff_hash)
 
             review_row = session.query(PRReview).filter_by(

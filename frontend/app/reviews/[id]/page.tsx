@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-
+import { Navbar } from "@/components/ui/navbar"
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
 export default function ReviewDetail() {
@@ -60,7 +60,9 @@ export default function ReviewDetail() {
               <p className="text-gray-500 text-xs font-mono mt-1">{review.filename}</p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-indigo-400">{review.quality_score.toFixed(1)}</p>
+              <p className="text-3xl font-bold text-indigo-400">
+               {review.quality_score != null ? review.quality_score.toFixed(1) : "—"}
+               </p>
               <p className="text-gray-500 text-xs">/ 10</p>
             </div>
           </div>
