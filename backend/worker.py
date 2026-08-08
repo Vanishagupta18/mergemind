@@ -10,6 +10,8 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timezone
 import os, json
 from dotenv import load_dotenv
+from models import init_db
+init_db()
 
 load_dotenv()
 celery_app = Celery('worker', broker=os.getenv('REDIS_URL'))
