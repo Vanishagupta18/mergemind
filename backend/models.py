@@ -3,7 +3,8 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import func
 import uuid, os
 from dotenv import load_dotenv
-
+from models import init_db
+init_db()
 load_dotenv()
 Base = declarative_base()
 

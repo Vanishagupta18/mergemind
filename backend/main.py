@@ -10,6 +10,12 @@ from dotenv import load_dotenv
 load_dotenv()
 app = FastAPI()
 
+from models import init_db
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
+    
 WEBHOOK_SECRET = os.getenv('GITHUB_WEBHOOK_SECRET')
 ALLOWED_REPOS = set(
     r.strip() for r in os.getenv('ALLOWED_REPOS', '').split(',') if r.strip()
