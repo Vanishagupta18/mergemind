@@ -1,134 +1,85 @@
 "use client"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Database, GitBranch, Zap, RefreshCw, FileCode, ArrowUpRight } from "lucide-react"
-import { Navbar } from "@/components/ui/navbar"
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-
-interface Repo {
-  repo_name: string
-  api_calls_made: number
-  cache_hits: number
-  files_skipped: number
-}
+import { FolderGit2 } from "lucide-react"
+import { loadRepos, loadReviews, type Repo, type Review } from "@/lib/api"
+import { DemoNotice } from "@/components/app/demo-notice"
+import { PageHeader, Panel, EmptyState, ErrorState, Skeleton } from "@/components/app/ui"
 
 export default function ReposPage() {
   const [repos, setRepos] = useState<Repo[]>([])
+  const [reviews, setReviews] = useState<Review[] | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [demo, setDemo] = useState(false)
 
   useEffect(() => {
-    fetch(`${API}/api/repos`)
-      .then(r => r.json())
-      .then(data => { setRepos(data); setLoading(false) })
-      .catch(() => setLoading(false))
+    Promise.allSettled([loadRepos(), loadReviews()]).then(([p, r]) => {
+      if (p.status === "rejected") setError(true)
+      else { setRepos(p.value.data); setDemo(p.value.demo) }
+      if (r.status === "fulfilled") setReviews(r.value.data)
+      setLoading(false)
+    })
   }, [])
 
-  const owner = (name: string) => name.split("/")[0] || name
-  const repo  = (name: string) => name.split("/")[1] || name
+  // /api/repos has no review count, so count real review rows per repo from /api/reviews
+  const reviewCount = (name: string) => (reviews ? reviews.filter(r => r.repo === name).length : "—")
+  const cacheRate = (r: Repo) => {
+    const total = r.api_calls_made + r.cache_hits
+    return total > 0 ? `${Math.round((r.cache_hits / total) * 100)}%` : "—"
+  }
 
   return (
-    <div className="min-h-screen bg-[#0B1120]">
-      <Navbar active="Repos" />
-      <main className="max-w-6xl mx-auto px-6 py-10">
-
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium mb-3 tracking-wide uppercase">
-            <Database className="w-3 h-3" />
-            <span>Repositories</span>
-          </div>
-          <h1 className="text-2xl font-semibold text-slate-100 tracking-tight">Connected Repos</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {loading ? "Loading..." : `${repos.length} repo${repos.length !== 1 ? "s" : ""} connected`}
-          </p>
-        </div>
-
-        {/* Repo cards */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 animate-pulse">
-                <div className="h-4 w-32 bg-slate-800 rounded mb-3" />
-                <div className="h-3 w-20 bg-slate-800/60 rounded mb-6" />
-                <div className="grid grid-cols-2 gap-3">
-                  {[1,2,3,4].map(j => <div key={j} className="h-10 bg-slate-800/60 rounded" />)}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : repos.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/30 py-24 text-center">
-            <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center mx-auto mb-4">
-              <Database className="w-6 h-6 text-slate-500" />
-            </div>
-            <p className="text-sm font-medium text-slate-400">No repositories connected</p>
-            <p className="text-xs text-slate-600 mt-1 max-w-xs mx-auto">
-              Install the MergeMind GitHub App on a repo and open a PR to get started
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {repos.map(r => (
-              <div key={r.repo_name}
-                className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 hover:bg-slate-900/60 transition-all group"
-              >
-                {/* Repo identity */}
-                <div className="flex items-start justify-between mb-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500/20 to-violet-500/20 ring-1 ring-indigo-500/20 flex items-center justify-center">
-                      <GitBranch className="w-4 h-4 text-indigo-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-100 group-hover:text-white">
-                        {repo(r.repo_name)}
-                      </p>
-                      <p className="text-xs text-slate-500">{owner(r.repo_name)}</p>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">
-                    Active
-                  </span>
-                </div>
-
-                {/* Stats grid */}
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { label: "API Calls",     value: r.api_calls_made, icon: Zap,       color: "text-amber-400" },
-                    { label: "Cache Hits",    value: r.cache_hits,     icon: RefreshCw,  color: "text-violet-400" },
-                    { label: "Files Skipped", value: r.files_skipped,  icon: FileCode,   color: "text-slate-400" },
-                    {
-                      label: "Cache Rate",
-                      value: r.api_calls_made > 0
-                        ? `${Math.round((r.cache_hits / (r.api_calls_made + r.cache_hits)) * 100)}%`
-                        : "0%",
-                      icon: ArrowUpRight,
-                      color: "text-emerald-400"
-                    },
-                  ].map(({ label, value, icon: Icon, color }) => (
-                    <div key={label} className="rounded-lg bg-slate-800/60 px-3 py-2.5">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Icon className={`w-3 h-3 ${color}`} />
-                        <span className="text-[10px] text-slate-500 font-medium">{label}</span>
-                      </div>
-                      <p className={`text-base font-bold ${color}`}>{value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Footer */}
-                <div className="mt-4 pt-4 border-t border-slate-800/60">
-                  <Link href="/reviews"
-                    className="flex items-center justify-between text-xs text-slate-500 hover:text-indigo-400 transition-colors"
-                  >
-                    <span>View reviews for this repo</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
+    <>
+      <PageHeader
+        title="Repositories"
+        description={loading ? "Loading…" : error ? "Unable to load repositories." : `${repos.length} repositor${repos.length !== 1 ? "ies" : "y"} with reviews`}
+      />
+      {demo && <DemoNotice />}
+      <Panel className="overflow-hidden">
+        {error ? <ErrorState title="Failed to load repositories" /> :
+         loading ? (
+           <div aria-busy="true" aria-label="Loading repositories">
+             {Array.from({ length: 3 }).map((_, i) => (
+               <div key={i} className="border-b border-line p-4 last:border-0"><Skeleton className="h-4 w-40" /><Skeleton className="mt-3 h-3 w-64" /></div>
+             ))}
+           </div>
+         ) : repos.length === 0 ? (
+           <EmptyState title="No repositories yet" hint="Install the MergeMind GitHub App on a repository and open a pull request to get started." />
+         ) : (
+          <ul>
+            {repos.map(r => {
+              const [owner, name] = r.repo_name.includes("/") ? r.repo_name.split("/") : ["", r.repo_name]
+              const href = `/reviews?repo=${encodeURIComponent(r.repo_name)}`
+              return (
+                <li key={r.repo_name} className="flex flex-col gap-3 border-b border-line p-4 last:border-0 lg:flex-row lg:items-center lg:justify-between">
+                  <Link href={href} className="group flex min-w-0 items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-line bg-subtle text-ink-2"><FolderGit2 className="h-4 w-4" /></span>
+                    <p className="truncate text-[15px] font-semibold leading-5 group-hover:text-accent">
+                      {owner && <span className="font-normal text-ink-2">{owner} / </span>}{name}
+                    </p>
                   </Link>
-                </div>
-              </div>
-            ))}
-          </div>
+                  <dl className="grid grid-cols-3 gap-4 text-[12px] sm:grid-cols-5 lg:flex lg:items-center lg:gap-6">
+                    {[
+                      ["Reviews", reviewCount(r.repo_name)],
+                      ["API calls", r.api_calls_made],
+                      ["Cache hits", r.cache_hits],
+                      ["Files skipped", r.files_skipped],
+                      ["Cache rate", cacheRate(r)],
+                    ].map(([label, value]) => (
+                      <div key={label as string}>
+                        <dt className="text-ink-3">{label}</dt>
+                        <dd className="mt-0.5 font-mono text-[13px] font-medium">{value}</dd>
+                      </div>
+                    ))}
+                    <Link href={href} className="col-span-3 text-[13px] font-medium text-accent hover:text-accent-hover sm:col-span-5 lg:col-span-1 lg:ml-2">View reviews</Link>
+                  </dl>
+                </li>
+              )
+            })}
+          </ul>
         )}
-      </main>
-    </div>
+      </Panel>
+    </>
   )
 }

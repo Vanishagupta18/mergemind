@@ -1,0 +1,700 @@
+{
+  "generated_at": "2026-10-04T14:36:35.112Z",
+  "stats": {
+    "total_reviews": 19,
+    "total_api_calls": 17,
+    "total_cache_hits": 13,
+    "repos_count": 1
+  },
+  "repos": [
+    {
+      "repo_name": "Vanishagupta18/codereview-test",
+      "api_calls_made": 17,
+      "cache_hits": 13,
+      "files_skipped": 3
+    }
+  ],
+  "reviews": [
+    {
+      "id": "f9697068-a9c3-4ff0-b0da-69f9eed4cac9",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 5,
+      "pr_title": "Test/mergemind pipeline",
+      "filename": "utils.py",
+      "quality_score": 6.5,
+      "status": "completed",
+      "created_at": "2026-10-04T13:42:21.862833+00:00",
+      "review_json": {
+        "overall_score": 6.5,
+        "critical_bugs": [
+          {
+            "line": 10,
+            "issue": "Potential Division by Zero",
+            "reasoning": "The 'calculate_percentage' function can raise a ZeroDivisionError if 'total' is zero.",
+            "confidence": "High"
+          }
+        ],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [
+          {
+            "issue": "Repeated Dictionary Access",
+            "reasoning": "In 'calculate_total' and 'get_item_by_id', the dictionary access for 'item['price']' and 'item['id']' could be more efficient if structured differently."
+          }
+        ],
+        "positive_observations": [
+          "Functions are clearly named and have single responsibilities.",
+          "Usage of list traversal is straightforward and easy to read."
+        ],
+        "suggested_fixes": [
+          {
+            "issue": "Potential Division by Zero",
+            "fix": "Add a check in 'calculate_percentage' to ensure 'total' is not zero before performing the division."
+          }
+        ],
+        "confidence_overall": "High",
+        "_filename": "utils.py"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "e9bd6dab-1cb1-4c65-9921-c9d30801fcd4",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 5,
+      "pr_title": "Test/mergemind pipeline",
+      "filename": "test.js",
+      "quality_score": 7,
+      "status": "completed",
+      "created_at": "2026-10-04T13:42:17.650686+00:00",
+      "review_json": {
+        "overall_score": 7,
+        "critical_bugs": [
+          {
+            "line": 12,
+            "issue": "Loose equality check (==)",
+            "reasoning": "Using '==' in user id comparison could allow type coercion, potentially returning incorrect user when 'id' is not strictly a number.",
+            "confidence": "High"
+          }
+        ],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [
+          {
+            "issue": "Lack of input validation",
+            "reasoning": "The functions do not validate their inputs, which could lead to unexpected behavior if the input is not as expected, such as non-array items in 'calculateTotal', or non-object in 'getName'."
+          },
+          {
+            "issue": "No error handling",
+            "reasoning": "There is no error handling in the functions. For example, 'divide' does not handle division by zero, which could lead to Infinity values."
+          }
+        ],
+        "positive_observations": [
+          "Functions are appropriately encapsulated and modularized for export."
+        ],
+        "suggested_fixes": [
+          {
+            "issue": "Loose equality check (==)",
+            "fix": "Change '==' to '===' in the 'getUser' function."
+          },
+          {
+            "issue": "Lack of input validation",
+            "fix": "Add checks at the start of functions to verify inputs are of expected types and structures."
+          },
+          {
+            "issue": "No error handling in 'divide'",
+            "fix": "Add a check before division to return a specific value or throw an error if 'b' is 0."
+          }
+        ],
+        "confidence_overall": "High",
+        "_filename": "test.js"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "5cb7b3b0-4115-42fe-a882-4637d697b6c1",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 5,
+      "pr_title": "Test/mergemind pipeline",
+      "filename": "package.json",
+      "quality_score": 4,
+      "status": "completed",
+      "created_at": "2026-10-04T13:42:14.451469+00:00",
+      "review_json": {
+        "overall_score": 4,
+        "critical_bugs": [
+          {
+            "line": 10,
+            "issue": "Inappropriately defined dependency version for 'express'",
+            "reasoning": "'express' version '999.0.0' does not exist, which will cause installation failures and may lead to runtime errors.",
+            "confidence": "High"
+          }
+        ],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [
+          {
+            "issue": "Missing tests for project",
+            "reasoning": "The script for testing only echoes a message, which does not provide any real test coverage or assurance of functionality."
+          }
+        ],
+        "positive_observations": [
+          "File structure is correct for a Node.js project."
+        ],
+        "suggested_fixes": [
+          {
+            "issue": "Inappropriately defined dependency version for 'express'",
+            "fix": "Update 'express' version to a valid current version, e.g., '4.18.1'."
+          }
+        ],
+        "confidence_overall": "Medium",
+        "_filename": "package.json"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "08e22fc1-45cb-447f-b226-3a814857ce9d",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 5,
+      "pr_title": "Test/mergemind pipeline",
+      "filename": "newbug.py",
+      "quality_score": 0,
+      "status": "completed",
+      "created_at": "2026-10-04T13:42:09.797339+00:00",
+      "review_json": {
+        "overall_score": 0,
+        "critical_bugs": [
+          {
+            "line": 6,
+            "issue": "Off-by-one error in loop condition",
+            "reasoning": "The loop should use '<' instead of '<=' to prevent accessing an undefined index in the array.",
+            "confidence": "High"
+          },
+          {
+            "line": 10,
+            "issue": "Assignment instead of equality check",
+            "reasoning": "In the 'getUser' function, '=' should be '==' or '===' to compare values instead of assigning.",
+            "confidence": "High"
+          }
+        ],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [],
+        "positive_observations": [
+          "Functions are self-contained and organized with clear names."
+        ],
+        "suggested_fixes": [
+          {
+            "issue": "Off-by-one error in loop condition",
+            "fix": "Change 'for (let i = 0; i <= items.length; i++)' to 'for (let i = 0; i < items.length; i++)'."
+          },
+          {
+            "issue": "Assignment instead of equality check",
+            "fix": "Change 'user => user.id = id' to 'user => user.id === id'."
+          }
+        ],
+        "confidence_overall": "High",
+        "_filename": "newbug.py"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "4693604d-e630-4a41-93f9-a854224192a1",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 5,
+      "pr_title": "Test/mergemind pipeline",
+      "filename": "demo.py",
+      "quality_score": 4,
+      "status": "completed",
+      "created_at": "2026-10-04T13:42:03.268758+00:00",
+      "review_json": {
+        "overall_score": 4,
+        "critical_bugs": [
+          {
+            "line": 7,
+            "issue": "Incorrect logic in is_positive",
+            "reasoning": "The function is_positive implies it should check if a number is positive, but it returns True for negative numbers instead.",
+            "confidence": "High"
+          },
+          {
+            "line": 21,
+            "issue": "Potential ZeroDivisionError in divide_numbers",
+            "reasoning": "The function does not check if 'b' is zero before performing division, which can lead to a runtime error.",
+            "confidence": "High"
+          }
+        ],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [
+          {
+            "issue": "No input validation",
+            "reasoning": "Functions like 'calculate_average' and 'divide_numbers' do not validate their inputs, which could lead to crashes or unexpected behavior with invalid data."
+          }
+        ],
+        "positive_observations": [
+          "Overall structure of functions is clear and well-defined."
+        ],
+        "suggested_fixes": [
+          {
+            "issue": "Fix the logic in is_positive function",
+            "fix": "Change the return statement to 'return number > 0' to correctly check for positivity."
+          },
+          {
+            "issue": "Prevent division by zero in divide_numbers",
+            "fix": "Add a check before division: 'if b == 0: raise ValueError(\"Cannot divide by zero\")'."
+          }
+        ],
+        "confidence_overall": "High",
+        "_filename": "demo.py"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "23d40c87-09b5-452d-9b4b-ed6d8a1c4e12",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 5,
+      "pr_title": "Test/mergemind pipeline",
+      "filename": "demo.js",
+      "quality_score": 6,
+      "status": "completed",
+      "created_at": "2026-10-04T13:41:59.093801+00:00",
+      "review_json": {
+        "overall_score": 6,
+        "critical_bugs": [
+          {
+            "line": 4,
+            "issue": "Incorrect logic in isValidAge function",
+            "reasoning": "The function name implies validating if the age is valid; however, it returns true for ages under 18, which may not be the intended functionality.",
+            "confidence": "High"
+          }
+        ],
+        "logic_errors": [
+          {
+            "line": 8,
+            "issue": "Loose equality in findUser function",
+            "reasoning": "Using '==' for comparison may lead to unexpected type coercion bugs if userId is of a different type than user.id.",
+            "confidence": "High"
+          }
+        ],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [
+          {
+            "issue": "No newline at the end of file",
+            "reasoning": "Lack of newline can lead to issues in some environments or with certain tools."
+          }
+        ],
+        "positive_observations": [
+          "Functions are modular and export correctly for testing or reuse."
+        ],
+        "suggested_fixes": [
+          {
+            "issue": "Incorrect logic in isValidAge function",
+            "fix": "Change the return statement to 'return age >= 18;' to reflect correct validation."
+          },
+          {
+            "issue": "Loose equality in findUser function",
+            "fix": "Change '==' to '===' for strict equality check: 'return users.find(user => user.id === userId);'."
+          }
+        ],
+        "confidence_overall": "High",
+        "_filename": "demo.js"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "5b193c12-a033-4d4b-84ed-dfd123b0273c",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 5,
+      "pr_title": "Test/mergemind pipeline",
+      "filename": "demo.html",
+      "quality_score": 7,
+      "status": "completed",
+      "created_at": "2026-10-04T13:41:55.030320+00:00",
+      "review_json": {
+        "overall_score": 7,
+        "critical_bugs": [],
+        "logic_errors": [],
+        "security_issues": [
+          {
+            "line": 13,
+            "issue": "Missing CSRF protection for form submission.",
+            "reasoning": "The form does not include any CSRF tokens, making it vulnerable to Cross-Site Request Forgery attacks.",
+            "confidence": "High"
+          },
+          {
+            "line": 6,
+            "issue": "Potential for XSS if user input is not sanitized.",
+            "reasoning": "User input from the username field could lead to XSS attacks if properly handled on the server side.",
+            "confidence": "High"
+          }
+        ],
+        "performance_issues": [],
+        "maintainability_notes": [
+          {
+            "issue": "Use of inline JS file.",
+            "reasoning": "Consider using a minified and/or bundled version of the JS file for production to improve loading performance."
+          }
+        ],
+        "positive_observations": [
+          "The HTML structure follows semantic standards.",
+          "Proper use of the viewport meta tag for responsive design."
+        ],
+        "suggested_fixes": [
+          {
+            "issue": "CSRF protection missing.",
+            "fix": "Implement CSRF tokens in the form to protect against CSRF attacks."
+          },
+          {
+            "issue": "XSS vulnerability.",
+            "fix": "Sanitize user inputs on the backend to prevent malicious scripts."
+          }
+        ],
+        "confidence_overall": "High",
+        "_filename": "demo.html"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "f55f1454-e240-4ec5-8e14-5cf1e8b3ab0c",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 5,
+      "pr_title": "Test/mergemind pipeline",
+      "filename": "demo.css",
+      "quality_score": 8,
+      "status": "completed",
+      "created_at": "2026-10-04T13:41:52.572047+00:00",
+      "review_json": {
+        "overall_score": 8,
+        "critical_bugs": [],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [
+          {
+            "issue": "No newline at end of file",
+            "reasoning": "It's a good practice to add a newline at the end of a file to avoid potential issues with version control and file handling."
+          }
+        ],
+        "positive_observations": [
+          "The CSS uses best practices for layout and design, such as using box-sizing for inputs."
+        ],
+        "suggested_fixes": [
+          {
+            "issue": "No newline at end of file",
+            "fix": "Add a newline character at the end of the CSS file."
+          }
+        ],
+        "confidence_overall": "High",
+        "_filename": "demo.css"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "1d0dfe97-6ab5-49d4-b667-0801b6bd4b78",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 5,
+      "pr_title": "Test/mergemind pipeline",
+      "filename": "README.md",
+      "quality_score": 10,
+      "status": "completed",
+      "created_at": "2026-10-04T13:41:46.324448+00:00",
+      "review_json": {
+        "overall_score": 10,
+        "critical_bugs": [],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [],
+        "positive_observations": [
+          "The README provides a clear explanation of the functionality and purpose of the Cache & Idempotency Test.",
+          "The test scenario outlined helps communicate the expected behavior of the MergeMind pipeline."
+        ],
+        "suggested_fixes": [],
+        "confidence_overall": "High",
+        "_filename": "README.md"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "9f2c7704-afaa-4235-a6d6-c1b2c7857be2",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 1,
+      "pr_title": "Test webhook",
+      "filename": "newbug4.js",
+      "quality_score": 2,
+      "status": "completed",
+      "created_at": "2026-08-06T07:59:30.335206+00:00",
+      "review_json": {
+        "overall_score": 2,
+        "critical_bugs": [
+          {
+            "line": 3,
+            "issue": "Incorrect return value for isEven function",
+            "reasoning": "The function isEven is supposed to determine if a number is even, but it returns true for odd numbers (n % 2 !== 0).",
+            "confidence": "High"
+          }
+        ],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [
+          {
+            "issue": "Improper function logic",
+            "reasoning": "The logic in the isEven function contradicts its name and purpose."
+          }
+        ],
+        "positive_observations": [],
+        "suggested_fixes": [
+          {
+            "issue": "Incorrect return value in isEven function",
+            "fix": "Change the return statement to return n % 2 === 0;"
+          }
+        ],
+        "confidence_overall": "High",
+        "_filename": "newbug4.js"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "64465ac7-5a5e-4caa-ac50-b5da57c69334",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 1,
+      "pr_title": "Test webhook",
+      "filename": "newbug3.js",
+      "quality_score": 0,
+      "status": "completed",
+      "created_at": "2026-08-06T07:55:43.665093+00:00",
+      "review_json": {
+        "overall_score": 0,
+        "critical_bugs": [],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [],
+        "positive_observations": [],
+        "suggested_fixes": [],
+        "confidence_overall": "Low",
+        "_filename": "newbug3.js"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "0183c476-ec07-474e-abd7-8100eb9b69cf",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 1,
+      "pr_title": "Test webhook",
+      "filename": "newbug2.js",
+      "quality_score": 10,
+      "status": "completed",
+      "created_at": "2026-08-06T07:50:54.769731+00:00",
+      "review_json": {
+        "overall_score": 10,
+        "critical_bugs": [],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [],
+        "positive_observations": [
+          "The file is newly created with no obvious issues."
+        ],
+        "suggested_fixes": [],
+        "confidence_overall": "High",
+        "_filename": "newbug2.js"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "f9a1f660-b278-40b2-9c8e-d5a94c9da7a5",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 1,
+      "pr_title": "Test webhook",
+      "filename": "test.js",
+      "quality_score": 0,
+      "status": "completed",
+      "created_at": "2026-08-06T07:36:22.815067+00:00",
+      "review_json": {
+        "overall_score": 0,
+        "critical_bugs": [],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [],
+        "positive_observations": [],
+        "suggested_fixes": [],
+        "confidence_overall": "Low",
+        "_filename": "test.js"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "442907d6-1d63-4066-8f65-b7e981eca13c",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 1,
+      "pr_title": "Test webhook",
+      "filename": "newbug.js",
+      "quality_score": 10,
+      "status": "completed",
+      "created_at": "2026-08-06T07:36:17.741261+00:00",
+      "review_json": {
+        "overall_score": 10,
+        "critical_bugs": [],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [],
+        "positive_observations": [
+          "File created successfully with no errors."
+        ],
+        "suggested_fixes": [],
+        "confidence_overall": "High",
+        "_filename": "newbug.js"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "f90a249b-8d3e-4082-b724-59616af834b2",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 2,
+      "pr_title": "Test review 1",
+      "filename": "README.md",
+      "quality_score": null,
+      "status": "failed",
+      "created_at": "2026-08-05T19:43:16.960025+00:00",
+      "review_json": {},
+      "retry_count": 4,
+      "last_error": null
+    },
+    {
+      "id": "5edc7486-f99c-4f1a-a76e-c258ff835788",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 2,
+      "pr_title": "Test review 1",
+      "filename": "README.md",
+      "quality_score": null,
+      "status": "failed",
+      "created_at": "2026-08-05T19:41:14.080053+00:00",
+      "review_json": {},
+      "retry_count": 4,
+      "last_error": null
+    },
+    {
+      "id": "997c3612-5b52-471a-8d89-fb921242d9c5",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 2,
+      "pr_title": "Test review 1",
+      "filename": "test.js",
+      "quality_score": 0,
+      "status": "completed",
+      "created_at": "2026-08-05T18:26:52.394612+00:00",
+      "review_json": {
+        "overall_score": 0,
+        "critical_bugs": [],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [
+          {
+            "issue": "No functions or methods present",
+            "reasoning": "The file is entirely new without any implemented functionality to review, making it impossible to assess correctness."
+          }
+        ],
+        "positive_observations": [
+          "File structure is correctly initialized."
+        ],
+        "suggested_fixes": [],
+        "confidence_overall": "Low",
+        "_filename": "test.js"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "b8669778-8deb-430e-91f3-6142c392e807",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 2,
+      "pr_title": "Test review 1",
+      "filename": "app.py",
+      "quality_score": 7,
+      "status": "completed",
+      "created_at": "2026-08-05T18:26:49.627902+00:00",
+      "review_json": {
+        "overall_score": 7,
+        "critical_bugs": [
+          {
+            "line": 2,
+            "issue": "Division by zero may occur",
+            "reasoning": "If b is zero, this will raise a ZeroDivisionError which was not handled.",
+            "confidence": "High"
+          }
+        ],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [
+          {
+            "issue": "Lack of error handling.",
+            "reasoning": "Adding error handling would improve robustness of the function."
+          }
+        ],
+        "positive_observations": [
+          "Functionally correct for valid inputs."
+        ],
+        "suggested_fixes": [
+          {
+            "issue": "Division by zero risk",
+            "fix": "Implement error handling for division by zero."
+          }
+        ],
+        "confidence_overall": "High",
+        "_filename": "app.py"
+      },
+      "retry_count": 0,
+      "last_error": null
+    },
+    {
+      "id": "9290da7c-075f-4f7f-ab3a-844bb9d86381",
+      "repo": "Vanishagupta18/codereview-test",
+      "pr_number": 2,
+      "pr_title": "Test review 1",
+      "filename": "README.md",
+      "quality_score": 10,
+      "status": "completed",
+      "created_at": "2026-08-05T18:26:44.239632+00:00",
+      "review_json": {
+        "overall_score": 10,
+        "critical_bugs": [],
+        "logic_errors": [],
+        "security_issues": [],
+        "performance_issues": [],
+        "maintainability_notes": [],
+        "positive_observations": [
+          "The purpose of the README is clear with the new title 'Testing worker parser' indicating its functionality."
+        ],
+        "suggested_fixes": [],
+        "confidence_overall": "High",
+        "_filename": "README.md"
+      },
+      "retry_count": 0,
+      "last_error": null
+    }
+  ]
+}

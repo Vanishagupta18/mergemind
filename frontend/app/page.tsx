@@ -1,314 +1,97 @@
 "use client"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import {
-  GitPullRequest, Database, Zap, RefreshCw,
-  TrendingUp, ArrowUpRight, Clock, CheckCircle2,
-  Activity, ChevronRight
-} from "lucide-react"
+import { AlertTriangle, ChevronRight } from "lucide-react"
+import { loadStats, loadReviews, needsAttention, attentionReason, averageScore, repoShortName, type Review, type Stats } from "@/lib/api"
+import { DemoNotice } from "@/components/app/demo-notice"
+import { PageHeader, Panel, PanelHeader, TextLink, EmptyState, ErrorState, Skeleton, Tag } from "@/components/app/ui"
+import { ReviewTable, ReviewTableSkeleton } from "@/components/app/review-table"
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-
-interface Review {
-  id: string
-  repo: string
-  pr_number: number
-  pr_title: string
-  quality_score: number | null   // was: number
-  status: string
-  created_at: string
-}
-
-interface Stats {
-  total_reviews: number
-  total_api_calls: number
-  total_cache_hits: number
-  repos_count: number
-  recent_reviews: Review[]
-}
-
-function ScoreChip({ score }: { score: number | null }) {
-  if (score == null) {
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ring-1 bg-slate-500/10 ring-slate-500/20 text-slate-500">
-        —
-      </span>
-    )
-  }
-  const cfg =
-    score >= 7 ? { text: "text-emerald-400", bg: "bg-emerald-400/10 ring-emerald-400/20" } :
-    score >= 4 ? { text: "text-amber-400",   bg: "bg-amber-400/10 ring-amber-400/20" } :
-                 { text: "text-red-400",      bg: "bg-red-400/10 ring-red-400/20" }
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ring-1 ${cfg.bg} ${cfg.text}`}>
-      {score.toFixed(1)}
-    </span>
-  )
-}
-
-function StatusChip({ status }: { status: string }) {
-  const cfg =
-    status === "completed" ? { text: "text-emerald-400", bg: "bg-emerald-400/10 ring-emerald-400/20", dot: "bg-emerald-400" } :
-    status === "pending"   ? { text: "text-amber-400",   bg: "bg-amber-400/10 ring-amber-400/20",   dot: "bg-amber-400" } :
-                             { text: "text-red-400",      bg: "bg-red-400/10 ring-red-400/20",      dot: "bg-red-400" }
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium ring-1 ${cfg.bg} ${cfg.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-      {status}
-    </span>
-  )
-}
-
-function CardSkeleton() {
-  return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5 animate-pulse">
-      <div className="h-3 w-20 bg-slate-800 rounded mb-4" />
-      <div className="h-8 w-12 bg-slate-800 rounded" />
-    </div>
-  )
-}
-
-function Navbar() {
-  return (
-    <nav className="sticky top-0 z-50 border-b border-slate-800/80 bg-[#0B1120]/80 backdrop-blur-md">
-      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-         <MergeMindLogo />
-<span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-500/10 text-indigo-400 ring-1 ring-indigo-500/20">
-  BETA
-</span>
-        </div>
-        <div className="flex items-center gap-1">
-          {[
-            { href: "/", label: "Overview" },
-            { href: "/reviews", label: "Reviews" },
-            { href: "/repos", label: "Repos" },
-          ].map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="px-3 py-1.5 rounded-lg text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 font-medium"
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-      </div>
-    </nav>
-  )
-}
-function MergeMindLogo() {
-  return (
-    <div className="flex items-center gap-2.5">
-      <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="logoGrad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#6366F1"/>
-            <stop offset="100%" stopColor="#10B981"/>
-          </linearGradient>
-        </defs>
-        {/* Hexagonal brain mesh */}
-        <path d="M50 18 L62 25 L62 39 L50 46 L38 39 L38 25 Z" stroke="url(#logoGrad)" strokeWidth="3" fill="none"/>
-        <path d="M50 46 L62 53 L62 67 L50 74 L38 67 L38 53 Z" stroke="url(#logoGrad)" strokeWidth="3" fill="none"/>
-        <path d="M62 25 L74 18 L86 25 L86 39 L74 46 L62 39" stroke="url(#logoGrad)" strokeWidth="3" fill="none"/>
-        <path d="M38 25 L26 18 L14 25 L14 39 L26 46 L38 39" stroke="url(#logoGrad)" strokeWidth="3" fill="none"/>
-        {/* Neural dots */}
-        <circle cx="50" cy="18" r="3.5" fill="#6366F1"/>
-        <circle cx="62" cy="25" r="3" fill="#6366F1"/>
-        <circle cx="38" cy="25" r="3" fill="#6366F1"/>
-        <circle cx="50" cy="74" r="4" fill="#10B981"/>
-        <circle cx="14" cy="32" r="3" fill="#7C3AED"/>
-        <circle cx="86" cy="32" r="3" fill="#7C3AED"/>
-        {/* Connection arms */}
-        <line x1="50" y1="74" x2="44" y2="88" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="50" y1="74" x2="56" y2="88" stroke="#10B981" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-        <line x1="14" y1="32" x2="4" y2="32" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="86" y1="32" x2="96" y2="32" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round"/>
-        <circle cx="4" cy="32" r="2.5" fill="#7C3AED"/>
-        <circle cx="96" cy="32" r="2.5" fill="#7C3AED"/>
-        <circle cx="44" cy="88" r="3" fill="#10B981"/>
-        <circle cx="56" cy="88" r="2.5" fill="#10B981" opacity="0.7"/>
-      </svg>
-      <span className="font-bold text-base tracking-tight">
-        <span className="text-slate-100">Merge</span>
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">Mind</span>
-      </span>
-    </div>
-  )
-}
 export default function Dashboard() {
   const [stats, setStats] = useState<Stats | null>(null)
+  const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [demo, setDemo] = useState(false)
 
   useEffect(() => {
-    fetch(`${API}/api/stats`)
-      .then(r => r.json())
-      .then(data => { setStats(data); setLoading(false) })
-      .catch(() => { setError(true); setLoading(false) })
+    Promise.allSettled([loadStats(), loadReviews()]).then(([s, r]) => {
+      if (s.status === "rejected") { setError(true); setLoading(false); return }
+      setStats(s.value.data)
+      setDemo(s.value.demo)
+      // /api/reviews (up to 100) is the broadest data; fall back to the 10 in /api/stats if it fails
+      setReviews(r.status === "fulfilled" ? r.value.data : s.value.data.recent_reviews)
+      setLoading(false)
+    })
   }, [])
 
-  const kpiCards = [
-    {
-      label: "Total Reviews",
-      value: stats?.total_reviews ?? 0,
-      icon: GitPullRequest,
-      color: "text-indigo-400",
-      ring: "ring-indigo-500/20",
-      bg: "bg-indigo-500/10",
-    },
-    {
-      label: "Repos Connected",
-      value: stats?.repos_count ?? 0,
-      icon: Database,
-      color: "text-emerald-400",
-      ring: "ring-emerald-500/20",
-      bg: "bg-emerald-500/10",
-    },
-    {
-      label: "API Calls",
-      value: stats?.total_api_calls ?? 0,
-      icon: Zap,
-      color: "text-amber-400",
-      ring: "ring-amber-500/20",
-      bg: "bg-amber-500/10",
-    },
-    {
-      label: "Cache Hits",
-      value: stats?.total_cache_hits ?? 0,
-      icon: RefreshCw,
-      color: "text-violet-400",
-      ring: "ring-violet-500/20",
-      bg: "bg-violet-500/10",
-    },
+  const total = stats?.total_reviews ?? 0
+  const scope = reviews.length < total ? `latest ${reviews.length}` : `${reviews.length}`
+  const completed = reviews.filter(r => r.status === "completed").length
+  const failed = reviews.filter(r => r.status === "failed").length
+  const attention = reviews.filter(needsAttention)
+  const { avg, count: scored } = averageScore(reviews)
+
+  const metrics: { label: string; value: string | number; note: string; danger?: boolean }[] = [
+    { label: "Total reviews", value: total, note: `${completed} completed · ${failed} failed` },
+    { label: "Needs attention", value: attention.length, note: `of ${scope} reviews failed or scored below 4`, danger: attention.length > 0 },
+    { label: "Average score", value: avg != null ? avg.toFixed(1) : "—", note: `out of 10 · ${scored} scored review${scored !== 1 ? "s" : ""}` },
+    { label: "Repositories", value: stats?.repos_count ?? 0, note: "With reviews" },
+    { label: "API calls", value: stats?.total_api_calls ?? 0, note: "AI review requests made" },
+    { label: "Cache hits", value: stats?.total_cache_hits ?? 0, note: "Reused earlier results" },
   ]
 
   return (
-    <div className="min-h-screen bg-[#0B1120]">
-      <Navbar />
+    <>
+      <PageHeader title="Overview" description="Monitor your recent pull request reviews." />
+      {demo && <DemoNotice />}
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-3">
+        {metrics.map(m => (
+          <Panel key={m.label} className="p-4">
+            <p className="text-[13px] text-ink-2">{m.label}</p>
+            {loading ? <Skeleton className="mt-2 h-8 w-12" /> : (
+              <p className={`mt-1 text-[26px] font-semibold leading-8 tracking-[-0.02em] ${m.danger ? "text-bad" : ""}`}>{error ? "—" : m.value}</p>
+            )}
+            <p className="mt-1 text-[12px] leading-4 text-ink-3">{error ? "" : m.note}</p>
+          </Panel>
+        ))}
+      </div>
 
-        {/* Page header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium mb-3 tracking-wide uppercase">
-            <Activity className="w-3 h-3" />
-            <span>Overview</span>
+      <Panel className="mb-6 overflow-hidden">
+        <PanelHeader title="Recent reviews" aside={<TextLink href="/reviews">View all</TextLink>} />
+        {error ? <ErrorState title="Failed to load reviews" /> :
+         loading ? <ReviewTableSkeleton /> :
+         !stats || stats.recent_reviews.length === 0 ? <EmptyState title="No reviews yet" hint="Open a pull request on a connected repository to get started." /> :
+         <ReviewTable reviews={stats.recent_reviews} />}
+      </Panel>
+
+      {!loading && !error && attention.length > 0 && (
+        <Panel className="border-l-2 border-l-warn">
+          <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-warn" />
+              <h2 className="text-[15px] font-semibold leading-5">Needs attention</h2>
+            </div>
+            <span className="text-[12px] text-ink-3">Failed, or score below 4</span>
           </div>
-          <h1 className="text-2xl font-semibold text-slate-100 tracking-tight">Dashboard</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            AI-powered PR review analytics for your repositories
-          </p>
-        </div>
-
-        {/* KPI cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          {loading
-            ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
-            : kpiCards.map(({ label, value, icon: Icon, color, ring, bg }) => (
-              <div
-                key={label}
-                className="rounded-xl border border-slate-800 bg-slate-900/50 p-5 hover:border-slate-700 hover:bg-slate-900 transition-all group"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-medium text-slate-500">{label}</span>
-                  <div className={`w-7 h-7 rounded-lg ${bg} ring-1 ${ring} flex items-center justify-center`}>
-                    <Icon className={`w-3.5 h-3.5 ${color}`} />
-                  </div>
-                </div>
-                <div className={`text-3xl font-bold tracking-tight ${color}`}>{value}</div>
-                <div className="flex items-center gap-1 mt-2 text-xs text-slate-600">
-                  <TrendingUp className="w-3 h-3" />
-                  <span>All time</span>
-                </div>
-              </div>
-            ))
-          }
-        </div>
-
-        {/* Recent Reviews */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/30 overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-100">Recent PR Reviews</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Latest AI-reviewed pull requests</p>
-            </div>
-            <Link
-              href="/reviews"
-              className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 font-medium"
-            >
-              View all <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
-
-          {error ? (
-            <div className="px-6 py-16 text-center">
-              <div className="w-10 h-10 rounded-full bg-red-500/10 ring-1 ring-red-500/20 flex items-center justify-center mx-auto mb-3">
-                <span className="text-red-400 text-lg">!</span>
-              </div>
-              <p className="text-sm text-slate-400">Failed to load reviews</p>
-              <p className="text-xs text-slate-600 mt-1">Make sure the backend is running on port 8000</p>
-            </div>
-          ) : loading ? (
-            <div className="divide-y divide-slate-800/50">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="px-6 py-4 flex items-center justify-between animate-pulse">
-                  <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 bg-slate-800 rounded-lg" />
-                    <div>
-                      <div className="h-3 w-32 bg-slate-800 rounded mb-2" />
-                      <div className="h-2.5 w-24 bg-slate-800/60 rounded" />
-                    </div>
-                  </div>
-                  <div className="h-5 w-14 bg-slate-800 rounded" />
-                </div>
-              ))}
-            </div>
-          ) : stats?.recent_reviews?.length === 0 ? (
-            <div className="px-6 py-16 text-center">
-              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-3">
-                <GitPullRequest className="w-5 h-5 text-slate-500" />
-              </div>
-              <p className="text-sm text-slate-400">No reviews yet</p>
-              <p className="text-xs text-slate-600 mt-1">Open a PR on your connected repo to get started</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-800/40">
-              {stats?.recent_reviews?.map(review => (
-                <Link
-                  key={review.id}
-                  href={`/reviews/${review.id}`}
-                  className="flex items-center justify-between px-6 py-4 hover:bg-slate-800/30 transition-colors group"
-                >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-slate-800 ring-1 ring-slate-700 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-mono text-slate-400">#{review.pr_number}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-200 truncate group-hover:text-white">
-                        {review.pr_title}
-                      </p>
-                      <p className="text-xs text-slate-500 mt-0.5 truncate">{review.repo}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                    <ScoreChip score={review.quality_score} />
-                    <StatusChip status={review.status} />
-                    <div className="hidden sm:flex items-center gap-1 text-xs text-slate-600">
-                      <Clock className="w-3 h-3" />
-                      {new Date(review.created_at).toLocaleDateString("en-IN", {
-                        day: "numeric", month: "short"
-                      })}
-                    </div>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-400 transition-colors" />
-                  </div>
+          <ul>
+            {attention.slice(0, 5).map(r => (
+              <li key={r.id} className="border-b border-line last:border-0">
+                <Link href={`/reviews/${r.id}`} className="flex items-center gap-3 px-4 py-2.5 text-[13px] hover:bg-subtle">
+                  <Tag tone={r.status === "failed" ? "bad" : "warn"} className="shrink-0">{attentionReason(r)}</Tag>
+                  <span className="min-w-0 flex-1 truncate">
+                    <span className="font-mono text-[12px] text-ink-3">{repoShortName(r.repo)} #{r.pr_number}</span>{" "}
+                    {r.pr_title} <span className="font-mono text-[12px] text-ink-2">· {r.filename}</span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-ink-3" />
                 </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-      </main>
-    </div>
+              </li>
+            ))}
+          </ul>
+          {attention.length > 5 && <p className="px-4 py-2.5 text-[12px] text-ink-3">+ {attention.length - 5} more in <Link href="/reviews" className="text-accent hover:text-accent-hover">Reviews</Link></p>}
+        </Panel>
+      )}
+    </>
   )
 }

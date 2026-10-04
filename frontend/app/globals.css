@@ -1,24 +1,42 @@
 @import "tailwindcss";
 
-:root {
-  --font-inter: "Inter", sans-serif;
+/* MergeMind design tokens — sourced from the Stitch DESIGN.md */
+@theme inline {
+  --color-canvas: #F7F7F5;
+  --color-surface: #FFFFFF;
+  --color-subtle: #FAFAFA;
+  --color-line: #E5E7EB;
+  --color-line-strong: #D1D5DB;
+  --color-ink: #0F172A;
+  --color-ink-2: #64748B;
+  --color-ink-3: #94A3B8;
+  --color-accent: #4F46E5;
+  --color-accent-hover: #4338CA;
+  --color-accent-tint: #EEF2FF;
+  --color-ok: #15803D;
+  --color-ok-bg: #F0FDF4;
+  --color-ok-line: #BBF7D0;
+  --color-warn: #B45309;
+  --color-warn-bg: #FFFBEB;
+  --color-warn-line: #FDE68A;
+  --color-bad: #B91C1C;
+  --color-bad-bg: #FEF2F2;
+  --color-bad-line: #FECACA;
+  --color-high: #C2410C;
+  --color-high-bg: #FFF7ED;
+  --color-high-line: #FFEDD5;
+  --color-neutral: #6B7280;
+  --color-neutral-bg: #F3F4F6;
+  --color-neutral-line: #E5E7EB;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-* {
-  box-sizing: border-box;
-}
+html, body { background: var(--color-canvas); color: var(--color-ink); }
+body { font-family: var(--font-sans); font-size: 14px; line-height: 20px; letter-spacing: -0.005em; -webkit-font-smoothing: antialiased; }
+* { box-sizing: border-box; }
 
-body {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  background-color: #0B1120;
-  color: #e2e8f0;
-}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--color-line-strong); border-radius: 4px; }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #0B1120; }
-::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #334155; }
-
-/* Smooth transitions */
-a, button { transition: all 0.15s ease; }
+:focus-visible { outline: 2px solid rgba(79, 70, 229, 0.45); outline-offset: 1px; }
